@@ -18,7 +18,7 @@ class NeuralNetwork(object):
     """
 
     def __init__(self, n_output, n_features, n_hidden=30, l2=0.0, epochs=500, learning_rate=0.001,
-                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1):
+                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, nesterov = False):
         self.n_output = n_output
         self.n_features = n_features
         self.n_hidden = n_hidden
@@ -30,6 +30,7 @@ class NeuralNetwork(object):
         self.decay_rate = decay_rate
         self.dropout = dropout
         self.minibatch_size = minibatch_size
+        self.nesterov = nesterov
 
     def initialize_weights(self):
         """ init weights with random nums uniformly with small values
@@ -190,13 +191,25 @@ class NeuralNetwork(object):
                 cost = self.get_cost(y_enc=y_enc[:, idx], output=a3, w1=self.w1, w2=self.w2)
 
                 #compute gradient via backpropagation
+            
                 grad1, grad2 = self.backprop(a1=a1, a2=a2, a3=a3, z2=z2, y_enc=y_enc[:, idx], w1=self.w1, w2=self.w2)
                 # update parameters, multiplying by learning rate + momentum constants
+
                 w1_update, w2_update = self.learning_rate*grad1, self.learning_rate*grad2
-                # gradient update: w += -alpha * gradient.
-                # use momentum - add in previous gradient mutliplied by a momentum hyperparameter.
-                self.w1 += -(w1_update + (self.momentum_const*prev_grad_w1))
-                self.w2 += -(w2_update + (self.momentum_const*prev_grad_w2))
+                if self.nesterov:
+                    # v_prev = v # back this up
+                    # v = mu * v - learning_rate * dx # velocity update stays the same
+                    # x += -mu * v_prev + (1 + mu) * v # position update changes form
+                    # psuedocode from http://cs231n.github.io/neural-networks-3/#sgd
+                    v1 = self.momentum_const * prev_grad_w1 - w1_update
+                    v2 = self.momentum_const * prev_grad_w2 - w2_update
+                    self.w1 += -self.momentum_const * prev_grad_w1 + (1 + self.momentum_const) * v1
+                    self.w2 += -self.momentum_const * prev_grad_w2 + (1 + self.momentum_const) * v2
+                else:
+                    # gradient update: w += -alpha * gradient.
+                    # use momentum - add in previous gradient mutliplied by a momentum hyperparameter.
+                    self.w1 += -(w1_update + (self.momentum_const*prev_grad_w1))
+                    self.w2 += -(w2_update + (self.momentum_const*prev_grad_w2))
                 prev_grad_w1, prev_grad_w2 = w1_update, w2_update
 
             if print_progress and (i+1) % 50==0:
