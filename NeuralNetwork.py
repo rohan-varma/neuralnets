@@ -18,7 +18,7 @@ class NeuralNetwork(object):
     """
 
     def __init__(self, n_output, n_features, n_hidden=30, l2=0.0, epochs=500, learning_rate=0.001,
-                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, nesterov = False):
+                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, nesterov = False, check_gradients = False):
         self.n_output = n_output
         self.n_features = n_features
         self.n_hidden = n_hidden
@@ -31,6 +31,7 @@ class NeuralNetwork(object):
         self.dropout = dropout
         self.minibatch_size = minibatch_size
         self.nesterov = nesterov
+        self.check_gradients = check_gradients
 
     def initialize_weights(self):
         """ init weights with random nums uniformly with small values
@@ -180,6 +181,7 @@ class NeuralNetwork(object):
         # PREVIOUS GRADIENTS
         prev_grad_w1 = np.zeros(self.w1.shape)
         prev_grad_w2 = np.zeros(self.w2.shape)
+        print("fitting")
 
         #pass through the dataset
         for i in range(self.epochs):
@@ -191,8 +193,20 @@ class NeuralNetwork(object):
                 cost = self.get_cost(y_enc=y_enc[:, idx], output=a3, w1=self.w1, w2=self.w2)
 
                 #compute gradient via backpropagation
-            
+
                 grad1, grad2 = self.backprop(a1=a1, a2=a2, a3=a3, z2=z2, y_enc=y_enc[:, idx], w1=self.w1, w2=self.w2)
+                if self.check_gradients:
+                    # compute numerical gradient
+                    h= 1e-5
+                    w1_h = self.w1 + h
+                    _, _, _, _, out1 = self.forward(X_data[idx], w1_h, self.w2)
+                    w1_h = self.w1 - h
+                    _, _, _, _, out2 = self.forward(X_data[idx], w1_h, self.w2)
+                    numerical_deriv_w1 = (out1 - out2) /float(2 * h)
+                    w1_grad_error = np.abs(numerical_deriv_w1 - grad1) / np.max(np.abs(numerical_deriv_w1), np.abs(grad1))
+                    print(w1_grad_error)
+
+
                 # update parameters, multiplying by learning rate + momentum constants
 
                 w1_update, w2_update = self.learning_rate*grad1, self.learning_rate*grad2
