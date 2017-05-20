@@ -195,7 +195,7 @@ class NeuralNetwork(object):
                 #compute gradient via backpropagation
 
                 grad1, grad2 = self.backprop(a1=a1, a2=a2, a3=a3, z2=z2, y_enc=y_enc[:, idx], w1=self.w1, w2=self.w2)
-                if self.check_gradients:
+                if self.check_gradients and print_progress and (i+1) % 50==0:
                     # compute numerical gradient
                     h= 1e-5
                     w1_h = self.w1 + h
