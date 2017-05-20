@@ -73,7 +73,8 @@ class NeuralNetwork(object):
             We take max(softmax(v)) to be the predicted label. The output of the softmax function
             is also used to calculate the cross-entropy loss
         """
-        return np.exp(v)/np.sum(np.exp(v), axis = 0)
+        logC = -np.max(v)
+        return np.exp(v + logC)/np.sum(np.exp(v + logC), axis = 0)
 
     def tanh(self, z, deriv=False):
         """ Compute the tanh function or its derivative.
@@ -82,7 +83,9 @@ class NeuralNetwork(object):
 
     def relu(self, z, deriv = False):
         if not deriv:
-            return np.max(0, z)
+            relud = z
+            relud[relud < 0] = 0
+            return relud
         deriv = z
         deriv[deriv <= 0] = 0
         deriv[deriv > 0] = 1
