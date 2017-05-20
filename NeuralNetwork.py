@@ -18,7 +18,7 @@ class NeuralNetwork(object):
     """
 
     def __init__(self, n_output, n_features, n_hidden=30, l2=0.0, epochs=500, learning_rate=0.001,
-                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, optimizer = 'Gradient Descent', nesterov = False, check_gradients = False):
+                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, optimizer = 'Gradient Descent', activation = 'relu', nesterov = False, check_gradients = False):
         self.n_output = n_output
         self.n_features = n_features
         self.n_hidden = n_hidden
@@ -39,6 +39,12 @@ class NeuralNetwork(object):
             exit()
         else:
             self.optimizer = optimizer
+        supported_activations = ['relu', 'tanh', 'sigmoid', 'maxout', 'elu']
+        if activation not in supported_activations:
+            print("Error: unsupported activation requested.")
+            print("Available activations: {}".format(supported_activations))
+        else:
+            self.activation = activation
 
 
     def initialize_weights(self):
@@ -73,6 +79,14 @@ class NeuralNetwork(object):
         """ Compute the tanh function or its derivative.
         """
         return np.tanh(z) if not deriv else 1 - np.square(np.tanh(z))
+
+    def relu(self, z, deriv = False):
+        if not deriv:
+            return np.max(0, z)
+        deriv = z
+        deriv[deriv <= 0] = 0
+        deriv[deriv > 0] = 1
+        return deriv
 
 
     def add_bias_unit(self, X, column=True):
