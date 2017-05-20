@@ -18,7 +18,7 @@ class NeuralNetwork(object):
     """
 
     def __init__(self, n_output, n_features, n_hidden=30, l2=0.0, epochs=500, learning_rate=0.001,
-                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, nesterov = False, check_gradients = False):
+                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, optimizer = 'Gradient Descent', nesterov = False, check_gradients = False):
         self.n_output = n_output
         self.n_features = n_features
         self.n_hidden = n_hidden
@@ -32,6 +32,14 @@ class NeuralNetwork(object):
         self.minibatch_size = minibatch_size
         self.nesterov = nesterov
         self.check_gradients = check_gradients
+        supported_optimizers = ['Gradient Descent', 'Momentum', 'Nesterov', 'Adam', 'Adagrad', 'Adadelta', 'RMSProp']
+        if optimizer not in supported_optimizers:
+            print("Error: unsupported optimizer requested.")
+            print("Available optimizers: {}".format(supported_optimizers))
+            exit()
+        else:
+            self.optimizer = optimizer
+
 
     def initialize_weights(self):
         """ init weights with random nums uniformly with small values
@@ -195,7 +203,8 @@ class NeuralNetwork(object):
                 #compute gradient via backpropagation
 
                 grad1, grad2 = self.backprop(a1=a1, a2=a2, a3=a3, z2=z2, y_enc=y_enc[:, idx], w1=self.w1, w2=self.w2)
-                if self.check_gradients and print_progress and (i+1) % 50==0:
+
+                if self.check_gradients:
                     # compute numerical gradient
                     h= 1e-5
                     w1_h = self.w1 + h
@@ -206,7 +215,7 @@ class NeuralNetwork(object):
                     analytical = np.sum(grad1)
                     numerical = np.sum(numerical_deriv_w1)
                     w1_grad_error = np.abs(analytical - numerical) / np.max(np.abs(analytical), np.abs(numerical))
-                    print("gradient error: {}".format(w1_grad_error))
+                    #print("gradient error: {}".format(w1_grad_error))
 
 
                 # update parameters, multiplying by learning rate + momentum constants
@@ -231,6 +240,7 @@ class NeuralNetwork(object):
             if print_progress and (i+1) % 50==0:
                 print "Epoch: " + str(i+1)
                 print "Loss: " + str(cost)
+                print("gradient error: {}".format(w1_grad_error))
                 acc = self.training_acc(X, y)
                 print "Training Accuracy: " + str(acc)
 
