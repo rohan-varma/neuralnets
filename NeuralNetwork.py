@@ -199,12 +199,14 @@ class NeuralNetwork(object):
                     # compute numerical gradient
                     h= 1e-5
                     w1_h = self.w1 + h
-                    _, _, _, _, out1 = self.forward(X_data[idx], w1_h, self.w2)
+                    _, _, _, _, out1 = self.forward(X_data[idx], w1_h, self.w2, do_dropout = False)
                     w1_h = self.w1 - h
-                    _, _, _, _, out2 = self.forward(X_data[idx], w1_h, self.w2)
+                    _, _, _, _, out2 = self.forward(X_data[idx], w1_h, self.w2, do_dropout = False)
                     numerical_deriv_w1 = (out1 - out2) /float(2 * h)
-                    w1_grad_error = np.abs(numerical_deriv_w1 - grad1) / np.max(np.abs(numerical_deriv_w1), np.abs(grad1))
-                    print(w1_grad_error)
+                    analytical = np.sum(grad1)
+                    numerical = np.sum(numerical_deriv_w1)
+                    w1_grad_error = np.abs(analytical - numerical) / np.max(np.abs(analytical), np.abs(numerical))
+                    print("gradient error: {}".format(w1_grad_error))
 
 
                 # update parameters, multiplying by learning rate + momentum constants
