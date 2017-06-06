@@ -17,8 +17,11 @@ class NeuralNetwork(object):
         minibatch_size: int (default: 1) - divides training data into batches for efficiency
     """
 
-    def __init__(self, n_output, n_features, n_hidden=30, l2=0.0, epochs=500, learning_rate=0.001,
-                    momentum_const=0.0, decay_rate=0.0, dropout=False, minibatch_size=1, optimizer = 'Gradient Descent', activation = 'relu', nesterov = False, check_gradients = False):
+    def __init__(self, n_output, n_features, n_hidden=30, l2=0.0, epochs=500,
+                 learning_rate=0.001, momentum_const=0.0, decay_rate=0.0,
+                 dropout=False, minibatch_size=1,
+                 optimizer = 'Gradient Descent', activation = 'relu',
+                 nesterov = False, check_gradients = False, early_stop = None, metrics = ['Accuracy']):
         self.n_output = n_output
         self.n_features = n_features
         self.n_hidden = n_hidden
@@ -45,6 +48,11 @@ class NeuralNetwork(object):
             print("Available activations: {}".format(supported_activations))
         else:
             self.activation = activation
+        self.early_stop = early_stop
+        SUPPORTED_METRICS = ['Accuracy', 'Precision', 'Recall', 'AUC']
+        for elem in metrics:
+            assert elem in SUPPORTED_METRICS
+        self.metrics = metrics
 
 
     def initialize_weights(self):
@@ -210,6 +218,7 @@ class NeuralNetwork(object):
 
         #pass through the dataset
         for i in range(self.epochs):
+            previous_accuracies = []
             self.learning_rate /= (1 + self.decay_rate*i)
             mini = np.array_split(range(y_data.shape[0]), self.minibatch_size)
             for idx in mini:
@@ -259,6 +268,12 @@ class NeuralNetwork(object):
                 print "Loss: " + str(cost)
                 print("gradient error: {}".format(w1_grad_error))
                 acc = self.training_acc(X, y)
+                previous_accuracies.append(acc)
+                if self.early_stop is not None and len(previous_accuracies) > 3:
+                    if abs(previous_accuracies[-1] - previous_accuracies[-2]) < self.early_stop and abs(previous_accuracies[-1] - previous_accuracies[-3]) < self.early_stop:
+                        print("Early stopping, accuracy has stayed roughly constant over last 100 iterations.")
+                        break
+
                 print "Training Accuracy: " + str(acc)
 
         return self

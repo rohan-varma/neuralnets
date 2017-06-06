@@ -1,6 +1,6 @@
 # neuralnets
 Implementations and experiments with Neural Networks. 
-
+All of this code will be ported to Python 3 shortly.
 The main file of importance is neuralnetwork.py. It contains a from-scratch implementation of a neural network with a single hidden layer, without the use of any external libraries other than numpy. 
 
 The network achieves about 96.5% accuracy on MNIST if the hyperparameters are tuned. 
