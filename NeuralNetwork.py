@@ -264,9 +264,10 @@ class NeuralNetwork(object):
                 prev_grad_w1, prev_grad_w2 = w1_update, w2_update
 
             if print_progress and (i+1) % 50==0:
-                print "Epoch: " + str(i+1)
-                print "Loss: " + str(cost)
-                print("gradient error: {}".format(w1_grad_error))
+                print("Epoch: {}".format(i + 1))
+                print("Loss: " + str(cost))
+                print("Loss: {}".format(cost))
+                print("Gradient Error: {}".format(w1_grad_error))
                 acc = self.training_acc(X, y)
                 previous_accuracies.append(acc)
                 if self.early_stop is not None and len(previous_accuracies) > 3:
@@ -274,6 +275,7 @@ class NeuralNetwork(object):
                         print("Early stopping, accuracy has stayed roughly constant over last 100 iterations.")
                         break
 
-                print "Training Accuracy: " + str(acc)
+                print("Training Accuracy: " + str(acc))
+                print("Training Accuracy: {}".format(acc))
 
         return self
