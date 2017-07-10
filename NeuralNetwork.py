@@ -183,7 +183,7 @@ class NeuralNetwork(object):
         grad2[:, 1:]+= (w2[:, 1:]*self.l2) # derivative of .5*l2*w2^2
         return grad1, grad2
 
-    def training_acc(self, X_train, y_train):
+    def accuracy(self, X_train, y_train):
         """Calculate the training accuracy. Requires passing through the entire dataset."""
         y_train_pred = self.predict(X_train)
         diffs = y_train_pred - y_train
@@ -193,6 +193,8 @@ class NeuralNetwork(object):
                 count+=1
         return 100 - count*100/y_train.shape[0]
 
+
+
     def predict(self, X, dropout = False):
         """Generate a set of predicted labels for the input dataset"""
         a1, z2, a2, z3, a3 = self.forward(X, self.w1, self.w2, do_dropout = False)
@@ -200,6 +202,7 @@ class NeuralNetwork(object):
         #ex: first row of z3 = [0.98, 0.78, 0.36]. This means our network has 3 output units = 3 class labels. And this instance most likely belongs to the class given by the label 0.
         y_pred = np.argmax(a3, axis = 0)
         return y_pred
+
 
 
     def fit(self, X, y, print_progress=True):
@@ -215,16 +218,19 @@ class NeuralNetwork(object):
         prev_grad_w1 = np.zeros(self.w1.shape)
         prev_grad_w2 = np.zeros(self.w2.shape)
         print("fitting")
+        costs = []
 
         #pass through the dataset
         for i in range(self.epochs):
             previous_accuracies = []
             self.learning_rate /= (1 + self.decay_rate*i)
             mini = np.array_split(range(y_data.shape[0]), self.minibatch_size)
+            grads_w1, grads_w2 = [], [] # needed if we want to remember averages of gradients across time
             for idx in mini:
                 #feed feedforward
                 a1, z2, a2, z3, a3= self.forward(X_data[idx], self.w1, self.w2)
                 cost = self.get_cost(y_enc=y_enc[:, idx], output=a3, w1=self.w1, w2=self.w2)
+                costs.append(cost)
 
                 #compute gradient via backpropagation
 
@@ -261,21 +267,25 @@ class NeuralNetwork(object):
                     # use momentum - add in previous gradient mutliplied by a momentum hyperparameter.
                     self.w1 += -(w1_update + (self.momentum_const*prev_grad_w1))
                     self.w2 += -(w2_update + (self.momentum_const*prev_grad_w2))
+                # save previous gradients for momentum
+                # grads_w1.append(w1_update)
+                # grads_w2.append(w2_update)
+                # prev_grad_w1 = np.mean(grads_w1)
+                # prev_grad_w2 = np.mean(grads_w2)
+                # alternate way that just remembers the previous gradient
                 prev_grad_w1, prev_grad_w2 = w1_update, w2_update
 
             if print_progress and (i+1) % 50==0:
                 print("Epoch: {}".format(i + 1))
-                print("Loss: " + str(cost))
                 print("Loss: {}".format(cost))
                 print("Gradient Error: {}".format(w1_grad_error))
-                acc = self.training_acc(X, y)
+                acc = self.accuracy(X, y)
                 previous_accuracies.append(acc)
                 if self.early_stop is not None and len(previous_accuracies) > 3:
                     if abs(previous_accuracies[-1] - previous_accuracies[-2]) < self.early_stop and abs(previous_accuracies[-1] - previous_accuracies[-3]) < self.early_stop:
                         print("Early stopping, accuracy has stayed roughly constant over last 100 iterations.")
                         break
 
-                print("Training Accuracy: " + str(acc))
                 print("Training Accuracy: {}".format(acc))
 
         return self
