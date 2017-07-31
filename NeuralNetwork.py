@@ -284,7 +284,8 @@ class NeuralNetwork(object):
             if print_progress and (i+1) % 50==0:
                 print("Epoch: {}".format(i + 1))
                 print("Loss: {}".format(cost))
-                print("Gradient Error: {}".format(w1_grad_error))
+                if self.check_gradients:
+                    print("Gradient Error: {}".format(w1_grad_error))
                 acc = self.accuracy(X, y)
                 previous_accuracies.append(acc)
                 if self.early_stop is not None and len(previous_accuracies) > 3:
