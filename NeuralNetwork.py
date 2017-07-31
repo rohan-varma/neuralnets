@@ -2,6 +2,7 @@ import numpy as np
 from scipy.special import expit
 import sys
 import os
+from optimizers import *
 
 class NeuralNetwork(object):
     """ Feedforward neural network with a single hidden layer
@@ -251,8 +252,13 @@ class NeuralNetwork(object):
 
 
                 # update parameters, multiplying by learning rate + momentum constants
-
+                # w1_update, w2_update = self.momentum_optimizer(self.learning_rate, grad1, grad2)
                 w1_update, w2_update = self.learning_rate*grad1, self.learning_rate*grad2
+                # OPTIMIZERS TEST - remove this later
+                w1_update, w2_update = vanilla_gd([self.learning_rate], grad1, grad2)
+                self.w1 += -(w1_update)
+                self.w2 += -(w2_update)
+                continue
                 if self.nesterov:
                     # v_prev = v # back this up
                     # v = mu * v - learning_rate * dx # velocity update stays the same
