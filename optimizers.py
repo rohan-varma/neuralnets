@@ -11,6 +11,23 @@ def vanilla_gd(params, grad1, grad2):
     w1_update, w2_update = learning_rate * grad1, learning_rate * grad2
     return w1_update, w2_update
 
-def momentum_optimizer(params, grad1, grad2, prev_grad_1, prev_grad_2):
+def momentum_optimizer(params, grad1, grad2, prev_grad_1, prev_grad_2, nesterov = False):
     # Gradient descent with momentum.
-    pass
+    learning_rate = params[0]
+    momentum_rate = params[1]
+
+    w1_update, w2_update = learning_rate * grad1, learning_rate * grad2
+
+    if nesterov:
+        # momentum update is the same
+        v1 = momentum_rate * prev_grad_1 - w1_update
+        # gradient is taken at the place where the momentum takes the param
+        v2 = momentum_rate * prev_grad_2 - w2_update
+        w1_update = momentum_rate * prev_grad_1 - (1 + momentum_rate) * v1
+        w2_update = momentum_rate * prev_grad_2 - (1 + momentum_rate) * v2
+    else:
+        # the update just takes on an additional constant * the previous gradient.
+        w1_update = (w1_update + momentum_rate * prev_grad_1)
+        w2_update = (w2_update + momentum_rate * prev_grad_2)
+
+    return w1_update, w2_update
