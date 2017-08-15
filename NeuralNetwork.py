@@ -4,6 +4,9 @@ import sys
 import os
 from optimizers import *
 
+def print_shape(nparry):
+    print("{}".format(nparry.shape))
+
 class NeuralNetwork(object):
     """ Feedforward neural network with a single hidden layer
         Params:
@@ -238,18 +241,30 @@ class NeuralNetwork(object):
                 grad1, grad2 = self.backprop(a1=a1, a2=a2, a3=a3, z2=z2, y_enc=y_enc[:, idx], w1=self.w1, w2=self.w2)
 
                 if self.check_gradients:
+                    eps = 10e-4
                     # compute numerical gradient
-                    h= 1e-5
-                    w1_h = self.w1 + h
-                    _, _, _, _, out1 = self.forward(X_data[idx], w1_h, self.w2, do_dropout = False)
-                    w1_h = self.w1 - h
-                    _, _, _, _, out2 = self.forward(X_data[idx], w1_h, self.w2, do_dropout = False)
-                    numerical_deriv_w1 = (out1 - out2) /float(2 * h)
-                    analytical = np.sum(grad1)
-                    numerical = np.sum(numerical_deriv_w1)
-                    w1_grad_error = np.abs(analytical - numerical) / np.max(np.abs(analytical), np.abs(numerical))
-                    #print("gradient error: {}".format(w1_grad_error))
-
+                    w1_check, w2_check = self.w1, self.w2
+                    g1_check, g2_check = grad1, grad2
+                    w1_check = w1_check.reshape((w1_check.shape[0] * w1_check.shape[1]))
+                    w2_check = w2_check.reshape((w2_check.shape[0] * w2_check.shape[1]))
+                    g1_check = g1_check.reshape((g1_check.shape[0] * g1_check.shape[1]))
+                    g2_check = g2_check.reshape((g2_check.shape[0] * g2_check.shape[1]))
+                    for check in [w1_check, w2_check, g1_check, g2_check]:
+                        print_shape(check)
+                    for i in range(w1_check.shape[0]):
+                        E = np.zeros(w1_check.shape[0])
+                        E[i] = 1
+                        w1_check_2 = w1_check + (eps * E)
+                        w1_check_3 = w1_check - (eps * E)
+                        for j in range(w1_check.shape[0]):
+                            if j != i:
+                                assert w1_check_2[j] == w1_check[j], "Houston we have a problem"
+                                assert w1_check_3[j] == w1_check[j], "Houston we have a problem"
+                        J1 = self.get_cost(y_enc=y_enc[:, idx], output=a3, w1=w1_check_2.reshape((self.w1.shape[0], self.w1.shape[1])), w2=self.w2)
+                        J2 = self.get_cost(y_enc=y_enc[:, idx], output=a3, w1=w1_check_3.reshape((self.w1.shape[0], self.w1.shape[1])), w2=self.w2)
+                        numerical_gradient = (J1 - J2) / (2 * eps)
+                        if i % 100 == 0:
+                            print("numerical gradient is {} and actual gradient is {}".format(numerical_gradient, g1_check[i]))
 
                 # update parameters, multiplying by learning rate + momentum constants
                 # w1_update, w2_update = self.momentum_optimizer(self.learning_rate, grad1, grad2)
