@@ -223,6 +223,7 @@ class NeuralNetwork(object):
         prev_grad_w2 = np.zeros(self.w2.shape)
         print("fitting")
         costs = []
+        grad_1_li, grad_2_li = [], [] # used to keep list of gradients which can be used to measure and differentiate between learning speed of input -> hidden and hidden -> output layer weights
 
         #pass through the dataset
         for i in range(self.epochs):
@@ -239,6 +240,8 @@ class NeuralNetwork(object):
                 #compute gradient via backpropagation
 
                 grad1, grad2 = self.backprop(a1=a1, a2=a2, a3=a3, z2=z2, y_enc=y_enc[:, idx], w1=self.w1, w2=self.w2)
+                grad_1_li.append(grad1)
+                grad_2_li.append(grad2)
 
                 if self.check_gradients:
                     eps = 10e-4
@@ -270,10 +273,10 @@ class NeuralNetwork(object):
                 # w1_update, w2_update = self.momentum_optimizer(self.learning_rate, grad1, grad2)
                 w1_update, w2_update = self.learning_rate*grad1, self.learning_rate*grad2
                 # OPTIMIZERS TEST - remove this later
-                w1_update, w2_update = vanilla_gd([self.learning_rate], grad1, grad2)
-                self.w1 += -(w1_update)
-                self.w2 += -(w2_update)
-                continue
+                # w1_update, w2_update = vanilla_gd([self.learning_rate], grad1, grad2)
+                # self.w1 += -(w1_update)
+                # self.w2 += -(w2_update)
+                # continue
                 if self.nesterov:
                     # v_prev = v # back this up
                     # v = mu * v - learning_rate * dx # velocity update stays the same
@@ -301,6 +304,8 @@ class NeuralNetwork(object):
                 print("Loss: {}".format(cost))
                 if self.check_gradients:
                     print("Gradient Error: {}".format(w1_grad_error))
+                grad_1_mag, grad_2_mag = np.linalg.norm(grad_1_li), np.linalg.norm(grad_2_li)
+                print("grad1 mag: {}, grad2 mang: {}".format(grad_1_mag, grad_2_mag))
                 acc = self.accuracy(X, y)
                 previous_accuracies.append(acc)
                 if self.early_stop is not None and len(previous_accuracies) > 3:
