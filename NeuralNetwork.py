@@ -60,7 +60,8 @@ class NeuralNetwork(object):
 
 
     def initialize_weights(self):
-        """ init weights with random nums uniformly with small values
+        """
+        init weights with random nums uniformly with small values
         """
         w1  = np.random.uniform(-1.0, 1.0, size=self.n_hidden*(self.n_features+1) // np.sqrt(self.n_features + 1)).reshape(self.n_hidden, (self.n_features + 1)// np.sqrt(self.n_features + 1))
         w2  = np.random.uniform(-1.0, 1.0, size=self.n_output*(self.n_hidden+1) // np.sqrt(self.n_hidden + 1)).reshape(self.n_output, (self.n_hidden + 1)// np.sqrt(self.n_hidden + 1))
