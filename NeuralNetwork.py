@@ -116,11 +116,16 @@ class NeuralNetwork(object):
 
         return bias_added
 
-    def compute_dropout(self, activations):
+    def compute_dropout(self, activations, dropout_prob = 0.5):
         """Sets half of the activations to zero
         Params: activations - numpy array
         Return: activations, which half set to zero
         """
+        # handle error
+        if dropout_prob < 0 or dropout_prob > 1:
+            dropout_prob = 0.5
+        # scale the activations (see http://cs231n.github.io/neural-networks-2/)
+        activations/=dropout_prob    
         mult = np.random.binomial(1, 0.5, size = activations.shape)
         activations*=mult
         return activations
