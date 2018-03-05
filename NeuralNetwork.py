@@ -61,10 +61,10 @@ class NeuralNetwork(object):
 
     def initialize_weights(self):
         """
-        init weights with random nums uniformly with small values
+        init weights with random nums uniformly with small values, dividing by fanin for xavier
         """
-        w1  = np.random.uniform(-1.0, 1.0, size=self.n_hidden*(self.n_features+1) // np.sqrt(self.n_features + 1)).reshape(self.n_hidden, (self.n_features + 1)// np.sqrt(self.n_features + 1))
-        w2  = np.random.uniform(-1.0, 1.0, size=self.n_output*(self.n_hidden+1) // np.sqrt(self.n_hidden + 1)).reshape(self.n_output, (self.n_hidden + 1)// np.sqrt(self.n_hidden + 1))
+        w1 = np.random.uniform(-1.0, 1.0, size = self.n_hidden * (self.n_features + 1)).reshape(self.n_hidden, (self.n_features + 1))/(self.n_features + 1)
+        w2 = np.random.uniform(-1.0, 1.0, size=self.n_output*(self.n_hidden+1)).reshape(self.n_output, self.n_hidden+ 1)/(self.n_hidden + 1)
         return w1, w2
 
     def encode_labels(self, y, num_labels):
@@ -305,13 +305,12 @@ class NeuralNetwork(object):
                 # alternate way that just remembers the previous gradient
                 prev_grad_w1, prev_grad_w2 = w1_update, w2_update
 
-            if print_progress and (i+1) % 50==0:
+            if print_progress and (i+1) % 1 == 0:
                 print("Epoch: {}".format(i + 1))
                 print("Loss: {}".format(cost))
                 if self.check_gradients:
                     print("Gradient Error: {}".format(w1_grad_error))
                 grad_1_mag, grad_2_mag = np.linalg.norm(grad_1_li), np.linalg.norm(grad_2_li)
-                print("grad1 mag: {}, grad2 mang: {}".format(grad_1_mag, grad_2_mag))
                 acc = self.accuracy(X, y)
                 previous_accuracies.append(acc)
                 if self.early_stop is not None and len(previous_accuracies) > 3:
