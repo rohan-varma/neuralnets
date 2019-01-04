@@ -126,7 +126,7 @@ class NeuralNetwork(object):
             dropout_prob = 0.5
         # scale the activations (see http://cs231n.github.io/neural-networks-2/)
         activations/=dropout_prob    
-        mult = np.random.binomial(1, 0.5, size = activations.shape)
+        mult = np.random.binomial(1, dropout_prob, size = activations.shape)
         activations*=mult
         return activations
 
